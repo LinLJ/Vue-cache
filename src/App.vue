@@ -1,8 +1,12 @@
 <template>
   <div id="app">
     <div id="nav">
-      <router-link to="/">Home</router-link> |
-      <router-link to="/about">About</router-link>
+      <router-link to="/">home</router-link>|
+      <router-link to="/cookies">cookies</router-link>|
+      <router-link to="/store">store</router-link>|
+      <router-link to="/excel">excel</router-link>|
+      <router-link to="/excel2">excel2</router-link>|
+      <router-link to="/excel3">excel3</router-link>
     </div>
     <router-view />
   </div>
@@ -16,4 +20,5 @@
   text-align center
   color #2c3e50
   margin-top 60px
+  font-size 30px
 </style>

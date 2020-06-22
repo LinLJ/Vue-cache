@@ -5,8 +5,7 @@
       <router-link to="/cookies">cookies</router-link>|
       <router-link to="/store">store</router-link>|
       <router-link to="/excel">excel</router-link>|
-      <router-link to="/excel2">excel2</router-link>|
-      <router-link to="/excel3">excel3</router-link>
+        <router-link to="/kuayu">kuayu</router-link>
     </div>
     <router-view />
   </div>

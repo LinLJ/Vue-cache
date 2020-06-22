@@ -1,43 +1,35 @@
 <template>
-
-    <div class="table">
-        <el-button type="primary" @click="exportExcel">下载Excel</el-button>
+    <div class="app-container">
+        <!-- 查询和其他操作 -->
+        <el-button slot="trigger" size="small" type="primary" @click="exportExcel">下载Excel</el-button>
         <el-upload
                 class="upload-demo"
-                action=""
-                :on-change="handleChange"
+                ref="upload"
+                :action=uploadUrl()
+                :on-success="handleAvatarSuccess"
+                :on-change="upload"
                 :on-remove="handleRemove"
-                :limit="1"
-                accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel"
+                :before-remove="beforeRemove"
+                accept=".xlsx"
+                :file-list="fileList"
                 :auto-upload="false">
-            <el-button size="small" type="primary">上传Excel</el-button>
+            <el-button slot="trigger" size="small" type="success">上传Excel</el-button>
+            <el-button style="margin-left: 10px;" size="small" type="success" @click="submitUpload">上传服务器</el-button>
         </el-upload>
-        <el-table
-                :data="tableData"
-                style="width: 100%"
-                id="out-table">
-            <el-table-column
-                    prop="date"
-                    label="日期"
-                    width="180">
-            </el-table-column>
-            <el-table-column
-                    prop="name"
-                    label="姓名"
-                    width="180">
-            </el-table-column>
-            <el-table-column
-                    prop="address"
-                    label="地址">
-            </el-table-column>
+
+        <!-- 查询结果 -->
+        <el-table :data="showTableData" id="out-table">
+            <el-table-column :formatter="dateFormat" prop="date" label="日期" width="200"></el-table-column>
+            <el-table-column prop="name" label="姓名" width="200"></el-table-column>
+            <el-table-column prop="address" label="地址"></el-table-column>
         </el-table>
     </div>
-
 </template>
 
 <script>
-    import FileSaver from "file-saver";
-    import XLSX from "xlsx";
+  import FileSaver from "file-saver";
+  import XLSX from 'xlsx'
+  import moment from 'moment'
 
   export default {
     name: "ExcelTableSample",
@@ -45,26 +37,28 @@
       return {
         tableData: [{
           date: '2016-05-02',
-          name: '王小虎',
+          name: '小二',
           address: '上海市普陀区金沙江路 1518 弄'
         }, {
           date: '2016-05-04',
-          name: '王小虎',
+          name: '小二',
           address: '上海市普陀区金沙江路 1517 弄'
-        }, {
-          date: '2016-05-01',
-          name: '王小虎',
-          address: '上海市普陀区金沙江路 1519 弄'
-        }, {
-          date: '2016-05-03',
-          name: '王小虎',
-          address: '上海市普陀区金沙江路 1516 弄'
         }],
-        importData:[]
+        fileList: [],
+        //展示用
+        showTableData:[],
+        //新增用
+        addTableData:[],
+        //导出excel名称
+        exportExcelName: "export-excel.xlsx"
       }
     },
+    created() {
+      this.showTableData=this.tableData;
+    },
+
     methods: {
-      //定义导出Excel表格事件
+      //导出Excel事件
       exportExcel() {
         /* 从表生成工作簿对象 */
         const wb = XLSX.utils.table_to_book(document.querySelector("#out-table"));
@@ -82,7 +76,7 @@
             //返回一个新创建的 Blob 对象，其内容由参数中给定的数组串联组成。
             new Blob([wbout], { type: "application/octet-stream" }),
             //设置导出文件名称
-            "out-excel.xlsx"
+            this.exportExcelName
           );
         } catch (e) {
           if (typeof console !== "undefined") console.log(e, wbout);
@@ -90,92 +84,74 @@
         return wbout;
       },
 
-      //定义导入Excel表格事件
-      handleChange(file, fileList){
-        this.fileTemp = file.raw
-
-        if(this.fileTemp){
-          if((this.fileTemp.type == 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet') || (this.fileTemp.type == 'application/vnd.ms-excel')){
-            this.importfxx(this.fileTemp)
-
-          } else {
-            this.$message({
-              type:'warning',
-              message:'附件格式错误，请删除后重新上传！'
-            })
-          }
-        } else {
-          this.$message({
-            type:'warning',
-            message:'请上传附件！'
-          })
+      //上传服务器
+      submitUpload () {
+        console.info(this.addTableData)
+        this.$refs.upload.submit()
+      },
+      handleAvatarSuccess (response, file, fileList) {
+        if (response && response.code === '200') {
+          this.$notify.success({
+            title: '成功',
+            message: '导入成功'})
         }
       },
-
-      handleRemove(file,fileList){
-        this.fileTemp = null
+      //导入Excel事件
+      upload (file, fileList) {
+        const files = {0: file.raw};
+        this.readExcel1(files)
       },
-      importfxx(obj) {
-        // 通过DOM取文件数据
-        this.file = obj
-        const rABS = false; //是否将文件读取为二进制字符串
-        const f = this.file;
-        const reader = new FileReader();
-        //if (!FileReader.prototype.readAsBinaryString) {
-        FileReader.prototype.readAsBinaryString = function(f) {
-          let binary = "";
-          const rABS = false; //是否将文件读取为二进制字符串
-          let wb; //读取完成的数据
-          let outdata;
-          const reader = new FileReader();
-          reader.onload = function(e) {
-            const bytes = new Uint8Array(reader.result);
-            const length = bytes.byteLength;
-            for(let i = 0; i < length; i++) {
-              binary += String.fromCharCode(bytes[i]);
-            }
-            //const XLSX = require('xlsx');
-            if(rABS) {
-              wb = XLSX.read(btoa(this.fixdata(binary)), { //手动转化
-                type: 'base64'
-              });
-            } else {
-              wb = XLSX.read(binary, {
-                type: 'binary'
-              });
-            }
-            outdata = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);//outdata就是你想要的东西
-            this.da = [...outdata]
+      readExcel1 (files) {
+        // console.log(files)
+        if (files.length <= 0) {
+          return false
+        } else if (!/\.(xls|xlsx)$/.test(files[0].name.toLowerCase())) {
+          this.$Message.error('上传格式不正确，请上传xls或者xlsx格式');
+          return false
+        }
+        const fileReader = new FileReader();
+        fileReader.onload = (ev) => {
+          try {
+            const data = ev.target.result;
+            const workbook = XLSX.read(data, {
+              type: 'binary',
+              cellDates: true
+            });
+            const wsname = workbook.SheetNames[0];// 取第一张表
+            const ws = XLSX.utils.sheet_to_json(workbook.Sheets[wsname]);// 生成json表格内容
             const arr = []
-            this.da.map(v => {
+            ws.map(v => {
               const obj = {}
               obj.date = v['日期']
               obj.name = v['姓名']
               obj.address = v['地址']
               arr.push(obj)
             })
-            this.importData = arr
-            console.info(arr)
-            return arr
+            this.showTableData = this.tableData.concat(arr)  //把数据塞到表格预览
+            this.addTableData = arr;
+          } catch (e) {
+            return false
           }
-
-          reader.readAsArrayBuffer(f);
-        }
-
-        if(rABS) {
-          reader.readAsArrayBuffer(f);
-        } else {
-          reader.readAsBinaryString(f);
-        }
+        };
+        fileReader.readAsBinaryString(files[0])
       },
-      fixdata(data) {
-        const w = 1024 << 10; //每次读取1M字节
-        const len = Math.floor(data.byteLength / w);
-        const o = new Array(len);
-        for (let i = 0; i < len; i++)
-            o[i] = String.fromCharCode.apply(null, new Uint8Array(data.slice(i * w, (i + 1) * w)));
-            //o[i] = String.fromCharCode.apply(null, new Uint8Array(data.slice(i * w)));
-        return o.join('');
+      uploadUrl () {
+        return process.env.BASE_API + '/upload/importIncomeExcel'
+      },
+      //时间转换
+      dateFormat: function (row, column) {
+        const date = row[column.property];
+        if (date === undefined) {
+          return ''
+        }
+        return moment(date).format('YYYY-MM-DD')
+      },
+      handleRemove(file, fileList) {
+        this.showTableData=this.tableData;
+        console.log(file, fileList);
+      },
+      beforeRemove(file, fileList) {
+        return this.$confirm(`确定移除 ${ file.name }？`);
       }
     }
   }
@@ -185,14 +161,12 @@
         margin-top 50px
     .el-button {
         margin-bottom: 10px;
-        position:relative;
-        left:-600px;
+        margin-left: 10px;
         height:39px;
         width:100px;
     }
     .el-upload {
         margin-bottom: 10px;
-
     }
 </style>
 

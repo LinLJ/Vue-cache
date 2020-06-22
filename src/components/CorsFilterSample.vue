@@ -1,9 +1,6 @@
 <template>
     <div>
         <h1>{{ message }}</h1>
-        <el-button round type="info" @click="sampleClick">
-            点击
-        </el-button>
     </div>
 
 </template>
@@ -13,11 +10,22 @@
     name: "CorsFilterSample",
     data() {
       return {
-        message: "点击按钮根据keys获取value"
+        message: "跨域请求"
       }
     },
     created(){
       this.cookieMethod()
+    },
+    mounted () {
+      this.$axios
+        .get("http://127.0.0.1:8081/cors")
+        .then(res=>{
+          console.log(res)
+          this.message=res.data;
+        })
+        .catch(err=>{
+          console.log(err)
+        })
     },
     methods: {
       cookieMethod(){
@@ -28,7 +36,6 @@
         console.info(this.$cookies.get("cookie-test"))
         console.info(this.$cookies.keys())
       }
-
     }
   }
 </script>

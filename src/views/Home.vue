@@ -1,6 +1,6 @@
 <template>
   <div class="home">
-    <el-carousel height="980px" direction="vertical" :autoplay="false">
+    <el-carousel height="795px" direction="vertical" :autoplay="true">
       <el-carousel-item v-for="item in urlItem" :key="item">
         <el-image :src="item"></el-image>
       </el-carousel-item>
@@ -14,9 +14,15 @@ export default {
   data(){
     return{
       urlItem:[
-        'http://47.94.103.120/cat/1.jpg',
-        'http://47.94.103.120/cat/2.jpg',
-        'http://47.94.103.120/cat/3.jpg'
+        'http://47.94.103.120/cat/chijing.gif',
+        'http://47.94.103.120/cat/zuibang.gif',
+        'http://47.94.103.120/cat/bao.gif',
+        'http://47.94.103.120/cat/heng.gif',
+        'http://47.94.103.120/cat/jizhi.gif',
+        'http://47.94.103.120/cat/kaixin.gif',
+        'http://47.94.103.120/cat/xiu.gif',
+        'http://47.94.103.120/cat/zantong.gif',
+        'http://47.94.103.120/cat/chigua.gif'
       ]
     }
   }
@@ -24,14 +30,10 @@ export default {
 </script>
 
 <style lang="stylus">
-  .home
-    margin-top 50px
-  .el-carousel__item h3 {
-    color: #475669;
-    font-size: 14px;
-    opacity: 0.75;
-    line-height: 200px;
-    margin: 0;
+  .el-carousel__item {
+    align-items:center;
+    display: table-cell;
+
   }
 
   .el-carousel__item:nth-child(2n) {
@@ -40,5 +42,9 @@ export default {
 
   .el-carousel__item:nth-child(2n+1) {
     background-color: #d3dce6;
+  }
+  .el-image{
+    margin-top:200px;
+    align-items:center;
   }
 </style>
